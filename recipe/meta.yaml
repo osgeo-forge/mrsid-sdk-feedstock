@@ -1,0 +1,54 @@
+{% set version = "9.5.4.4709" %}
+{% macro recipe_parent() -%}
+  file:///{{ RECIPE_DIR|replace("\\", "/")|urlencode|replace("%3A", ":")|replace("/recipe", "") }}
+{%- endmacro %}
+
+package:
+  name: mrsid-sdk
+  version: {{ version }}
+
+source:
+  url: {{ recipe_parent() }}/archive/MrSID_DSDK-{{ version }}-win64-vc14.zip
+  sha256: f49954f43bfe4dcd69487085c58184ddb75d8590c41f826f3427421f30131d00
+
+build:
+  number: 1001
+  # For now...
+  skip: True  # [not win]
+
+requirements:
+  host:
+  run:
+    - geos
+    - tbb
+
+test:
+  files:
+    - meg_cr20.sid
+  commands:
+    - if not exist %PREFIX%\\Library\\bin\\lti_dsdk_9.5.dll exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\bin\\lti_dsdk_cdll_9.5.dll exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\bin\\lti_lidar_dsdk_1.1.dll exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\lib\\lti_dsdk_cdll.lib exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\lib\\lti_dsdk.lib exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\lib\\lti_lidar_dsdk.lib exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\include\\mrsid\\MrSIDImageReader.h exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\include\\lidar\\MG4PointReader.h exit 1  # [win]
+    - mrsiddecode.exe -h
+    - mrsidinfo.exe -h
+    - mrsidinfo.exe meg_cr20.sid
+
+about:
+  home: https://www.extensis.com/support/developers
+  license: Proprietary
+  license_file: mrsid-sdks-license.txt
+  summary: Libraries to decode MrSID, JPEG2000 and MG4 LiDAR data.
+  description: |
+    With this SDK you can view and decode MG4 files containing both raster
+    LiDAR data, in addition to MrSID Generation 3, MrSID Generation 2 and JPEG
+    2000 files.
+  doc_url: https://www.extensis.com/support/developers
+
+extra:
+  recipe-maintainers:
+    - dakcarto
